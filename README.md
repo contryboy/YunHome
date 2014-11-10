@@ -17,7 +17,7 @@
 运行调试：
 1. 运行样例程序: File->Examples->SeeedTFTv2->drawCircle，然后Verify, Upload，完毕后可以看到屏幕上出现不同颜色的圆形；同样方式可以测试其他样例程序。
 
-服务器安装配置
+Spacebrew服务器安装配置
 服务器可使用任何托管或者云服务器，运行linux系统。服务器使用spacebrew(http://docs.spacebrew.cc/)，本节以Ubuntu为例,介绍如何安装运行spacebrew.
 1. 安装node.js(https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os):
   curl -sL https://deb.nodesource.com/setup | sudo bash -
@@ -36,3 +36,22 @@
   forever start node_server.js
 7. 测试浏览器访问(替换<hostname>为实际ip地址): http://spacebrew.github.io/spacebrew.js/spacebrew_button/index.html?server=<hostname>&name=button2
 8. 测试浏览器访问(替换<hostname>为实际ip地址):http://spacebrew.github.io/spacebrew/admin/admin.html?server=<hostname>
+
+客户端(Arduino Yun)Spacebrew 安装
+ArduinoYun 端采用开源库yunSpacebrew(https://github.com/julioterra/yunSpacebrew)，安装测试方法：
+1. 下载源代码
+2. 拷贝python文件到yun: scp -r ./spacebrew root@arduino.local:/usr/lib/python2.7
+3. 拷贝shell文件到yun: scp ./run-spacebrew root@arduino.local:/usr/bin
+4. ssh到yun，修改文件权限: chmod 0755 /usr/bin/run-spacebrew
+5. 导入arduino lib: 在Arduino IDE选"Sketch->Import Library...->Add Libaray...", 选择源代码目录"arduino/SpacebrewYun"
+6. 测试： 在Arduino IDE选"File->Examples->SpacebrewYun->spacebrewBoolean"
+7. 在sb.connect()行修改服务器地址参数为实际部署服务器的地址
+8. 通过usb上传到arduino
+9. 运行serial monitor查看log,等待片刻，如出现： onnected to: xx.xx.xx.xx，表示连接成功
+10. 这时打开spacebrew admin界面，应该有"SpacebrewYun"的客户端出现，将其subscriber连接到任何可测试的publisher，用publisher 进行测试，观察serial monitor，会有相应log打印。也可以增加代码到handleBoolean(), 如
+        if(value) {
+          digitalWrite(13, HIGH);
+        } else {
+          digitalWrite(13, LOW);
+        }
+将观察到LED在控制下开／关，在wifi连接下测试，延时小于1秒，效果非常理想。
