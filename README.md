@@ -17,7 +17,7 @@
 运行调试：
 1. 运行样例程序: File->Examples->SeeedTFTv2->drawCircle，然后Verify, Upload，完毕后可以看到屏幕上出现不同颜色的圆形；同样方式可以测试其他样例程序。
 
-Spacebrew服务器安装配置
+Spacebrew服务器安装配置(如果仅作为测试，可以使用sandbox.spacebrew.cc,此步骤可以跳过)
 服务器可使用任何托管或者云服务器，运行linux系统。服务器使用spacebrew(http://docs.spacebrew.cc/)，本节以Ubuntu为例,介绍如何安装运行spacebrew.
 1. 安装node.js(https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os):
   curl -sL https://deb.nodesource.com/setup | sudo bash -
@@ -55,3 +55,15 @@ ArduinoYun 端采用开源库yunSpacebrew(https://github.com/julioterra/yunSpace
           digitalWrite(13, LOW);
         }
 将观察到LED在控制下开／关，在wifi连接下测试，延时小于1秒，效果非常理想。
+
+项目测试
+1. 将TFT显示屏插入Arduino Yun
+2. 用Arduino IDE打开 main/YunHome/YunHome.ino, 编译并上传到Arduino
+3. 在Arduino IDE打开 Serial Monitor
+4. 浏览器打开测试bool消息页面：http://spacebrew.github.io/spacebrew.js/spacebrew_button/index.html?server=sandbox.spacebrew.cc&name=testButton
+5. 浏览器打开测试string消息页面： http://spacebrew.github.io/spacebrew.js/spacebrew_string/index.html?server=sandbox.spacebrew.cc&name=testString
+6. 浏览器打开spacebrew admin：http://spacebrew.github.io/spacebrew/admin/admin.html?server=sandbox.spacebrew.cc
+7. 在admin界面上将看到YunHome应用和testButton, testString应用，testButton/testString的publisher连接到YunHome对应的subscriber
+8. 测试testButton页面，点击按钮，显示屏幕显示“ON”，松开按钮，显示"OFF"
+9. 测试testString页面，发送英文字符串，发送，屏幕显示对应的字符
+
