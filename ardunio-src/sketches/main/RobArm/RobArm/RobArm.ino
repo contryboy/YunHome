@@ -1,33 +1,27 @@
 
 #include <Servo.h> 
- 
-Servo myservo2; 
-Servo myservo3;
-Servo myservo4;
-Servo myservo5;
-Servo myservo6;
-Servo myservo7;
+#include "ArmController.h"
+#include "ArmServo.h"
+
+
+ArmServo myservo2(2, 90, 40, 120, 5);
+ArmServo myservo3(3, 90, 40, 120, 8);
+ArmServo myservo4(4, 90, 40, 120, 10);
+ArmServo myservo5(5, 90, 40, 120, 10);
+ArmServo myservo6(6, 90, 40, 120, 10);
+ArmServo myservo7(7, 90, 40, 120, 10);
 
 const int stepAngel = 2;
 const int stepDelay = 100;
 
 void setup() 
 { 
-  myservo2.attach(2);
-  myservo3.attach(3);
-  myservo4.attach(4);
-  myservo5.attach(5);
-  myservo6.attach(6);
-  myservo7.attach(7);
-  
-  
-  setServoAngel(myservo2, 90, 10);
-  setServoAngel(myservo3, 90, 10);
-  setServoAngel(myservo4, 90, 10);
-  setServoAngel(myservo5, 90, 10);
-  setServoAngel(myservo7, 90, 10);  
-  setServoAngel(myservo6, 90, 10);
-  
+  myservo2.begin();
+  myservo3.begin();
+  myservo4.begin();
+  myservo5.begin();
+  myservo6.begin();
+  myservo7.begin();
 } 
  
 void loop() 
@@ -40,56 +34,33 @@ void loop()
   while(true)
   {
     
-    setServoAngel(myservo7, 130, 5);
-    setServoAngel(myservo3, 130, 8);
-    setServoAngel(myservo4, 130, 10);
-    setServoAngel(myservo5, 130, 10);
-    setServoAngel(myservo2, 110, 2);
-    
-    setServoAngel(myservo6, 125, 10);
-    
-    delay(500);
-    setServoAngel(myservo7, 40, 5);
-    setServoAngel(myservo3, 40, 8);
-    setServoAngel(myservo4, 40, 10);
-    setServoAngel(myservo5, 40, 10);
-    setServoAngel(myservo2, 60, 2);
-    
-    setServoAngel(myservo6, 60, 10);
+    myservo7.moveToAngel(120);
+    myservo3.moveToAngel(120);
+    myservo4.moveToAngel(120);
+    myservo5.moveToAngel(120);
+    myservo2.moveToAngel(110);
+    myservo6.moveToAngel(120);
     
     delay(500);
-    setServoAngel(myservo2, 90, 2);
-    setServoAngel(myservo7, 90, 5);
-    setServoAngel(myservo3, 90, 8);
-    setServoAngel(myservo4, 90, 10);
-    setServoAngel(myservo5, 90, 10);
+    myservo7.moveToAngel(40);
+    myservo3.moveToAngel(40);
+    myservo4.moveToAngel(40);
+    myservo5.moveToAngel(40);
+    myservo2.moveToAngel(60);
+    myservo6.moveToAngel(40);
     
-    setServoAngel(myservo6, 90, 10);
+    
+    delay(500);
+    myservo2.moveToAngel(90);
+    myservo7.moveToAngel(90);
+    myservo3.moveToAngel(90);
+    myservo4.moveToAngel(90);
+    myservo5.moveToAngel(90);
+    myservo6.moveToAngel(90);
+    
     delay(2000); 
     
   } 
 } 
 
-void setServoAngel(Servo &servo, int targetAngel, int speedXX) {
-  
-  int currentStepDelay = stepDelay/speedXX;
-  
-  int currentAngel = servo.read();
-  
-  if(targetAngel > currentAngel) {
-    while(currentAngel < targetAngel) {
-      currentAngel += stepAngel;
-      servo.write(currentAngel);
-      delay(currentStepDelay);
-    }
-    
-  } else if (targetAngel < currentAngel) {
-    while(currentAngel > targetAngel) {
-      currentAngel -= stepAngel;
-      servo.write(currentAngel);
-      delay(currentStepDelay);
-    }
-  }
-
-}
 
