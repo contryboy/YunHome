@@ -5,9 +5,19 @@
 
 class ArmController
 {
+public:
+	ArmServo servo2;
+	ArmServo servo3;
+	ArmServo servo4;
+	ArmServo servo5;
+	ArmServo servo6;
+	ArmServo servo7;
 
 public:
-	void setArmToStrait();
+	ArmController();
+	void begin();
+	void moveServo(ArmServo &servo, int degreeAgainstMiddle);
+	void setAllServoInMiddle();
 };
 
 #endif /* defined(____ArmController__) */

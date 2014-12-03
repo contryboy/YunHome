@@ -1,56 +1,54 @@
 
 #include <Servo.h> 
+#include <SPI.h>  
+#include <Pixy.h>
 #include "ArmController.h"
-#include "ArmServo.h"
 #include "TrackedVehicle.h"
+#include "ArmServo.h"
 
-ArmServo myservo2(8, 90, 40, 120, 5);
-ArmServo myservo3(9, 90, 40, 120, 8);
-ArmServo myservo4(10, 90, 40, 120, 10);
-ArmServo myservo5(11, 90, 40, 120, 10);
-ArmServo myservo6(12, 90, 40, 120, 10);
-ArmServo myservo7(13, 90, 40, 120, 10);
+//Pixy pixy;
+
+ArmController armController;
 
 TrackedVehicle vehicle;
 
-const int stepAngel = 2;
-const int stepDelay = 100;
-
 void setup() 
-{ 
+{
+  //Must call this begore do serial print, it will set the baud
+  armController.begin();
   
-  Serial.begin(57600);
-
-  // for debugging, wait until a serial console is connected
-  //delay(4000);
-  //while (!Serial) { ; }
-  //Serial.print("Start... ");
+  Serial.print("Starting...\n");
   
-  myservo2.begin();
-  myservo3.begin();
-  myservo4.begin();
-  myservo5.begin();
-  myservo6.begin();
-  myservo7.begin();
-  
+  //pixy.init();
   vehicle.begin();
   
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
-  
+  armController.setAllServoInMiddle();
+  delay(1000);
 } 
  
 void loop() 
 { 
-  delay(5000);
-  while(true) {
-    testVehicle();
-    testArm();
-  }
+  /*int j;
+  uint16_t blocks;
+  char buf[32]; 
+  
+  blocks = pixy.getBlocks();
+  
+  if (blocks)
+  {
+      sprintf(buf, "Detected %d:\n", blocks);
+      Serial.print(buf);
+      for (j=0; j<blocks; j++)
+      {
+        sprintf(buf, "  block %d: ", j);
+        Serial.print(buf); 
+        pixy.blocks[j].print();
+      }
+  }  */
+  
+  //testVehicle();
+  testArm();
+  delay(1000);
 } 
 
 void testVehicle() {
@@ -66,33 +64,24 @@ void testVehicle() {
   
 }
 
-void testArm() {
-  
-    
-    myservo7.moveToAngel(120);
-    myservo3.moveToAngel(120);
-    myservo4.moveToAngel(120);
-    myservo5.moveToAngel(120);
-    myservo2.moveToAngel(110);
-    myservo6.moveToAngel(120);
-    
-    delay(500);
-    myservo7.moveToAngel(40);
-    myservo3.moveToAngel(40);
-    myservo4.moveToAngel(40);
-    myservo5.moveToAngel(40);
-    myservo2.moveToAngel(60);
-    myservo6.moveToAngel(40);
-    
-    
-    delay(500);
-    myservo2.moveToAngel(90);
-    myservo7.moveToAngel(90);
-    myservo3.moveToAngel(90);
-    myservo4.moveToAngel(90);
-    myservo5.moveToAngel(90);
-    myservo6.moveToAngel(90);
-    
-    delay(2000); 
+void testArm() 
+{
+    testServo(armController.servo2);
+    testServo(armController.servo3);
+    testServo(armController.servo4);
+    testServo(armController.servo5);
+    testServo(armController.servo6);
+    testServo(armController.servo7);
+}
+
+void testServo(ArmServo &servo)
+{
+   armController.moveServo(servo, 20);
+   delay(1000);
+   armController.moveServo(servo, 0);
+   delay(1000);
+   armController.moveServo(servo, -10);
+   delay(1000);
+   armController.moveServo(servo, 0);
 }
 

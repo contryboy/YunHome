@@ -2,41 +2,20 @@
 
 
 
-ArmServo::ArmServo(int signalPin, int straitAngel, int minAngel, int maxAngel, int defaultSpeed)
+ArmServo::ArmServo(int connectorNumber, int fullUs, int middleUs)
 {
-	m_signalPin = signalPin;
-	m_straitAngel = straitAngel;
-	m_minAngel = minAngel;
-	m_maxAngel = maxAngel;
-	m_defaultSpeed = defaultSpeed;
+	m_connectorNumber = connectorNumber;
+	m_fullUs = fullUs;
+	m_middleUs = middleUs;
+
+	m_maxAngelAgainstMiddle = DEFAULT_MAX_ANGEL_AGAINST_MIDDLE;
+	m_minAngelAgainstMiddle = DEFAULT_MIN_ANGEL_AGAINST_MIDDLE;
+	m_speed = DEFAULT_SPEED;
 	
 }
 
-void ArmServo::begin()
-{
-	m_servo.attach(m_signalPin);
-	m_servo.write(m_straitAngel);
-}
-
-void ArmServo::moveToAngel(int targetAngel) {
-  
-  int currentStepDelay = stepDelay/m_defaultSpeed;
-  
-  int currentAngel = m_servo.read();
-  
-  if(targetAngel > currentAngel) {
-    while(currentAngel < targetAngel && currentAngel < m_maxAngel) {
-      currentAngel += stepAngel;
-      m_servo.write(currentAngel);
-      delay(currentStepDelay);
-    }
-    
-  } else if (currentAngel > targetAngel) {
-    while(currentAngel > targetAngel && currentAngel > m_minAngel) {
-      currentAngel -= stepAngel;
-      m_servo.write(currentAngel);
-      delay(currentStepDelay);
-    }
-  }
-
+String ArmServo::getMoveCommand(int angelOffsetInDegree) {
+	int offsetInUs = angelOffsetInDegree * m_fullUs / 180;
+	int absoluteInUs = m_middleUs + offsetInUs;
+	return String("#") + m_connectorNumber + " P" + absoluteInUs + " S" + m_speed + " ";
 }

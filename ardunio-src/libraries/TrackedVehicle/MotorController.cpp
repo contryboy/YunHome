@@ -27,12 +27,12 @@ void MotorController::run(bool forward, int speed) {
 	bool d1 = !forward;
 	bool d2 = forward;
 
-	Serial.println("MotorController.run(): ");
-	Serial.println(m_EN_pin);
-	Serial.println(m_D1_pin);
-	Serial.println(m_D2_pin);
-	Serial.println(d1);
-	Serial.println(d2);
+	//Serial.println("MotorController.run(): ");
+	//Serial.println(m_EN_pin);
+	//Serial.println(m_D1_pin);
+	//Serial.println(m_D2_pin);
+	//Serial.println(d1);
+	//Serial.println(d2);
 
 	analogWrite(m_EN_pin, speed);
 	digitalWrite(m_D1_pin, d1);
