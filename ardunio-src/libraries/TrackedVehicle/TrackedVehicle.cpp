@@ -12,17 +12,18 @@ void TrackedVehicle::begin() {
 }
 
 /**
- * speed: speed of the vehicle (0~255)
- * angel: 0: strait; <0: left; >0: right
+ * If speed > 0, forward
+ * if speed = 0, stop
+ * if speed < 0, backward
  */
-void TrackedVehicle::move(bool forward, int speed, int angel) {
+void TrackedVehicle::move(int leftWheelSpeed, int rightWheelSpeed) {
 
-	//Serial.println("TrackedVehicle.forward()" );
-	//Serial.println(forward);
-	//Serial.println(speed);
+	leftWheelMotor.run(leftWheelSpeed > 0, abs(leftWheelSpeed)); //for left wheel motor, same direction as vehicle
+	rightWheelMotor.run(rightWheelSpeed < 0, abs(rightWheelSpeed)); //for left wheel motor, contract direction as vehicle
+}
 
-	leftWheelMotor.run(forward, speed);
-	rightWheelMotor.run(!forward, speed);
+void TrackedVehicle::circle(bool left, int speed) {
+	move((left ? 0-speed : speed), (left ? speed: 0-speed));
 }
 
 void TrackedVehicle::stop() {

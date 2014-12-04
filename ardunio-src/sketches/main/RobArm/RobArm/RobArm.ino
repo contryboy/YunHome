@@ -5,73 +5,58 @@
 #include "ArmController.h"
 #include "TrackedVehicle.h"
 #include "ArmServo.h"
+#include "RobertEye.h"
+#include "RobertBrain.h"
 
-//Pixy pixy;
-
+RobertEye robertEye;
 ArmController armController;
-
 TrackedVehicle vehicle;
+RobertBrain robertBrain(robertEye, armController, vehicle);
 
 void setup() 
 {
   //Must call this begore do serial print, it will set the baud
   armController.begin();
   
-  Serial.print("Starting...\n");
+  robertEye.begin();
   
-  //pixy.init();
   vehicle.begin();
   
+  delay(500);
   armController.setAllServoInMiddle();
-  delay(1000);
+  delay(500);
 } 
  
 void loop() 
 { 
-  /*int j;
-  uint16_t blocks;
-  char buf[32]; 
   
-  blocks = pixy.getBlocks();
+  robertBrain.start();
   
-  if (blocks)
-  {
-      sprintf(buf, "Detected %d:\n", blocks);
-      Serial.print(buf);
-      for (j=0; j<blocks; j++)
-      {
-        sprintf(buf, "  block %d: ", j);
-        Serial.print(buf); 
-        pixy.blocks[j].print();
-      }
-  }  */
-  
-  //testVehicle();
-  testArm();
   delay(1000);
 } 
 
+
 void testVehicle() {
   
-    vehicle.move(true, 255, 0);
-    delay(2000);
+    vehicle.move(255, 255);
+    delay(1000);
     vehicle.stop();
-    delay(2000);
-    vehicle.move(false, 255, 0);
-    delay(2000);
-    vehicle.stop();
-    delay(2000);
+    //delay(1000);
+    //vehicle.move(-255, -255);
+    //delay(1000);
+    //vehicle.stop();
+    //delay(1000);
   
 }
 
 void testArm() 
 {
-    testServo(armController.servo2);
-    testServo(armController.servo3);
-    testServo(armController.servo4);
+    //testServo(armController.servo2);
+    //testServo(armController.servo3);
+    //testServo(armController.servo4);
     testServo(armController.servo5);
-    testServo(armController.servo6);
-    testServo(armController.servo7);
+    //testServo(armController.servo6);
+    //testServo(armController.servo7);
 }
 
 void testServo(ArmServo &servo)
@@ -80,7 +65,7 @@ void testServo(ArmServo &servo)
    delay(1000);
    armController.moveServo(servo, 0);
    delay(1000);
-   armController.moveServo(servo, -10);
+   armController.moveServo(servo, -20);
    delay(1000);
    armController.moveServo(servo, 0);
 }

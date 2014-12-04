@@ -5,6 +5,11 @@
 
 class TrackedVehicle {
 
+public:
+	//the lowest value that can move the vehicle
+	const static int MIN_SPEED_VALUE = 210;
+	const static int MAX_SPEED_VALUE = 255;
+
 private:
 	MotorController leftWheelMotor;
 	MotorController rightWheelMotor;
@@ -13,11 +18,16 @@ public:
 	TrackedVehicle();
 
 	void begin();
+
 	/**
-	 * speed: speed of the vehicle (0~255)
-	 * angel: 0: strait; <0: left; >0: right
+	 * If speed > 0, forward
+	 * if speed = 0, stop
+	 * if speed < 0, backward
 	 */
-	void move(bool forward, int speed, int angel);
+	void move(int leftWheelSpeed, int RightWheelSpeed);
+
+	void circle(bool left, int speed);
+
 	void stop();
 
 };

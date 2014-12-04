@@ -9,7 +9,8 @@
 #define MOTORCONTROLLER_H_
 
 class MotorController {
-public:
+
+private:
 	/* Pin for control the speed (connected to ENA/ENB)*/
 	int m_EN_pin;
 	/* Pin1 for control the direction (connected to A1/B2)*/

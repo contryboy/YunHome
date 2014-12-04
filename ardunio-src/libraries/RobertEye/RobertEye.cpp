@@ -1,0 +1,58 @@
+/*
+ * RobertEye.cpp
+ *
+ *  Created on: Dec 4, 2014
+ *      Author: zhangdong
+ */
+
+#include "RobertEye.h"
+
+RobertEye::RobertEye() {
+	nullBlock.height = 0;
+	nullBlock.width = 0;
+}
+
+void RobertEye::begin() {
+	pixy.init();
+}
+
+void RobertEye::printObjects() {
+	int j;
+	int blocks;
+	char buf[32];
+
+	blocks = pixy.getBlocks();
+
+	if (blocks) {
+		sprintf(buf, "Detected %d:\n", blocks);
+		Serial.print(buf);
+		for (j = 0; j < blocks; j++) {
+			sprintf(buf, "  block %d: ", j);
+			Serial.print(buf);
+			pixy.blocks[j].print();
+		}
+	}
+}
+
+
+int RobertEye::getObjectCount() {
+	return pixy.getBlocks();
+}
+
+Block RobertEye::getBiggestObject() {
+	int blocks = pixy.getBlocks();
+	if(blocks == 0) {
+		return nullBlock;
+	} else {
+		return pixy.blocks[0];//the first one is the biggest one.
+	}
+}
+
+bool RobertEye::isValidObject(const Block &block) {
+	return block.height>0 && block.width>0;
+}
+
+int RobertEye::getXOffsetToMiddle(Block& block) {
+	int offset = block.x - MIDDLE_X;
+	return abs(offset) <= MIDDLE_RANGE ? 0 : offset;
+}
