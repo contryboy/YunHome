@@ -6,6 +6,7 @@
 #include "TrackedVehicle.h"
 #include "ArmServo.h"
 #include "RobertEye.h"
+#include "DistanceMeasure.h"
 #include "RobertBrain.h"
 
 RobertEye robertEye;
@@ -17,9 +18,7 @@ void setup()
 {
   //Must call this begore do serial print, it will set the baud
   armController.begin();
-  
   robertEye.begin();
-  
   vehicle.begin();
   
   delay(500);
@@ -29,10 +28,8 @@ void setup()
  
 void loop() 
 { 
-  
-  robertBrain.start();
-  
-  delay(1000);
+  robertBrain.think();
+  delay(20);
 } 
 
 
