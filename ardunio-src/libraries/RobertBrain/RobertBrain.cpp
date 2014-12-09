@@ -38,14 +38,46 @@ void RobertBrain::think() {
 		case(ADJUSTING_POSITION_DISTANCE):
 			adjustPositionDistance();
 			break;
+		case(POSITION_DISTANCE_ADJUSTED):
+			m_currentMode = ADJUSTING_POSITION_DEGREE;
+			delay(200);
+			break;
+		case(ADJUSTING_POSITION_DEGREE):
+			adjustPositionDegree();
+			break;
+		case(POSITION_DEGREE_ADJUSTED):
+			m_currentMode = PREPARE_FETCH_GESTURE;
+			delay(200);
+			break;
+		case(PREPARE_FETCH_GESTURE):
+			prepareFetchGesture();
+			break;
+		case(FETCH_POSITION_GESTURE_READY):
+			m_currentMode = CLIPPING_TENNIS_BALL;
+			delay(200);
+			break;
+		case(CLIPPING_TENNIS_BALL):
+			clipTennisBall();
+			break;
+		case(TENNIS_BALL_CLIPPED):
+			m_currentMode = HAND_UPING_WITH_BALL;
+			delay(200);
+			break;
+		case(HAND_UPING_WITH_BALL):
+			handUpWithBall();
+			break;
+		case(HAND_UP_WITH_BALL_FINISHED):
+			//to be continued.
+			break;
+
 	}
-
-
-
 }
 
 
 void RobertBrain::detectObject() {
+
+	m_vehicle.stop();
+	delay(25);
 
 	Block object = m_robertEye.getBiggestObject();
 
@@ -72,14 +104,13 @@ void RobertBrain::detectObject() {
 
 void RobertBrain::approchObject() {
 
+	m_vehicle.stop();
+	delay(25);
+
 	Block object = m_robertEye.getBiggestObject();
 
-	int distance = DistanceMeasure::getDistanceInMm();
-	//Serial.print(distance);
-	//Serial.println("mm");
-
 	if (m_robertEye.isValidObject(object)) {
-
+		int distance = DistanceMeasure::getDistanceInMm();
 		if(distance <= TARGET_DISTANCE_MM_TO_OBJECT) {
 			m_vehicle.stop();
 			m_currentMode = OBJECT_APPROCHED;
@@ -102,41 +133,69 @@ void RobertBrain::approchObject() {
 }
 
 
-void RobertBrain::adjustPositionDistance() {
-
+void RobertBrain::adjustPositionDegree() {
+	m_vehicle.stop();//make the vehicle stable for measure distance
+	delay(25);
 	Block object = m_robertEye.getBiggestObject();
 
-
-	//Serial.print(distance);
-	//Serial.println("mm");
-
 	if (m_robertEye.isValidObject(object)) {
-		m_vehicle.stop();//make the volt stable for measure distance
-		delay(50);
-
-		int distance = DistanceMeasure::getDistanceInMm();
-		if(distance < (TARGET_DISTANCE_MM_TO_OBJECT - POSITION_DISTANCE_MM_ACCURACY)) {
-			m_vehicle.move(0-TrackedVehicle::MAX_SPEED_VALUE, 0-TrackedVehicle::MAX_SPEED_VALUE);
-		} else if(distance > (TARGET_DISTANCE_MM_TO_OBJECT + POSITION_DISTANCE_MM_ACCURACY)){
-			m_vehicle.move(TrackedVehicle::MAX_SPEED_VALUE, TrackedVehicle::MAX_SPEED_VALUE);
+		int offsetXToMiddle = m_robertEye.getXOffsetToMiddle(object);
+		if (offsetXToMiddle < 0) {
+			m_vehicle.circle(true, calculateCircleSpeedByOffset(offsetXToMiddle));
+		} else if (offsetXToMiddle > 0) {
+			m_vehicle.circle(false, calculateCircleSpeedByOffset(offsetXToMiddle));
 		} else {
-			//m_currentMode = POSITION_DISTANCE_ADJUSTED;
+			m_currentMode = POSITION_DEGREE_ADJUSTED;
+			return;
 		}
 
-	} else {
-		//Object missing in eye
-		//Serial.println("Object missing");
-		m_vehicle.stop();
 	}
 }
 
+void RobertBrain::adjustPositionDistance() {
+
+	m_vehicle.stop();//make the volt stable for measure distance
+	delay(25);
+
+	Block object = m_robertEye.getBiggestObject();
+
+	if (m_robertEye.isValidObject(object)) {
+		int distance = DistanceMeasure::getDistanceInMm();
+		if(distance < (TARGET_DISTANCE_MM_TO_OBJECT - POSITION_DISTANCE_MM_ACCURACY)) {
+			m_vehicle.move(0-TrackedVehicle::MIN_SPEED_VALUE, 0-TrackedVehicle::MIN_SPEED_VALUE);
+		} else if(distance > (TARGET_DISTANCE_MM_TO_OBJECT + POSITION_DISTANCE_MM_ACCURACY)){
+			m_vehicle.move(TrackedVehicle::MIN_SPEED_VALUE, TrackedVehicle::MIN_SPEED_VALUE);
+		} else {
+			m_currentMode = POSITION_DISTANCE_ADJUSTED;
+		}
+	}
+}
+
+void RobertBrain::prepareFetchGesture() {
+	m_armController.preparePositionForFetch();
+	delay(4000);
+	m_currentMode = FETCH_POSITION_GESTURE_READY;
+}
+
+void RobertBrain::clipTennisBall() {
+	m_armController.clipTennisBall();
+	delay(3000);
+	m_currentMode = TENNIS_BALL_CLIPPED;
+}
+
+void RobertBrain::handUpWithBall() {
+	m_armController.handUp();
+	delay(4000);
+	m_currentMode = HAND_UP_WITH_BALL_FINISHED;
+}
+
 int RobertBrain::calculateApprochSpeed(int distance) {
-	return 220;
-	//if(distance > SLOW_DOWN_DISTANCE) {
-	//	return TrackedVehicle::MAX_SPEED_VALUE;
-	//} else {
-	//	return TrackedVehicle::MIN_SPEED_VALUE;
-	//}
+
+	if(distance > SLOW_DOWN_DISTANCE) {
+		return TrackedVehicle::MAX_SPEED_VALUE;
+	} else {
+		return TrackedVehicle::MIN_SPEED_VALUE;
+	}
 
 }
 

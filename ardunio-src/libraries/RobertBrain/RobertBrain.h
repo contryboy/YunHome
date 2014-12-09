@@ -17,14 +17,21 @@
 
 class RobertBrain {
 public:
-	enum ActionMode {INIT, DETECTING_OBJECT, OBJECT_DETECTED, APPROCHING_OBJECT, OBJECT_APPROCHED, ADJUSTING_POSITION_DISTANCE,
-		POSITION_DISTANCE_ADJUSTED, OBJECT_MISSED, DRIVE_TO_OBJECT};
+	enum ActionMode {INIT,
+		DETECTING_OBJECT, OBJECT_DETECTED,
+		APPROCHING_OBJECT, OBJECT_APPROCHED,
+		ADJUSTING_POSITION_DEGREE, POSITION_DEGREE_ADJUSTED,
+		ADJUSTING_POSITION_DISTANCE, POSITION_DISTANCE_ADJUSTED,
+		PREPARE_FETCH_GESTURE, FETCH_POSITION_GESTURE_READY,
+		CLIPPING_TENNIS_BALL, TENNIS_BALL_CLIPPED,
+		HAND_UPING_WITH_BALL, HAND_UP_WITH_BALL_FINISHED,
+		OBJECT_MISSED, DRIVE_TO_OBJECT};
 
 private:
 
-	const static int TARGET_DISTANCE_MM_TO_OBJECT = 150;
+	const static int TARGET_DISTANCE_MM_TO_OBJECT = 130;
 	const static int SLOW_DOWN_DISTANCE = 500;
-	const static int POSITION_DISTANCE_MM_ACCURACY = 10;
+	const static int POSITION_DISTANCE_MM_ACCURACY = 5;
 
 	ActionMode m_currentMode;
 	RobertEye &m_robertEye;
@@ -44,7 +51,11 @@ public:
 private:
 	void detectObject();
 	void approchObject();
+	void adjustPositionDegree();
 	void adjustPositionDistance();
+	void prepareFetchGesture();
+	void clipTennisBall();
+	void handUpWithBall();
 };
 
 #endif /* ROBERTBRAIN_H_ */

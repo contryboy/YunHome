@@ -7,7 +7,7 @@ class TrackedVehicle {
 
 public:
 	//the lowest value that can move the vehicle
-	const static int MIN_SPEED_VALUE = 190;
+	const static int MIN_SPEED_VALUE = 210;
 	const static int MAX_SPEED_VALUE = 255;
 
 private:

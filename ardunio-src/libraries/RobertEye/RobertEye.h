@@ -15,9 +15,9 @@
 class RobertEye {
 
 public:
-	const static int MIDDLE_X = 150;
-	//if x is with +/- 5 of middle, consider it still in middle
-	const static int MIDDLE_RANGE = 20;
+	const static int MIDDLE_X = 163;
+	//if x is with +/- MIDDLE_RANGE of middle, consider it still in middle
+	const static int MIDDLE_RANGE = 3;
 
 private:
 	Pixy pixy;

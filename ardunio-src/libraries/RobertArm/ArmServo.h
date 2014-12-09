@@ -11,29 +11,32 @@ class ArmServo
 public:
 	
 	//Default, 1500 is in the middle, but it is adjustble
-	static const int DEFAULT_MIDDLE_US = 1500;
+	static const long DEFAULT_MIDDLE_US = 1500;
 	//Default, a range of 1000us ~= 180 degree
-	static const int DEFAULT_FULL_US_RANGE = 1000;
+	static const long DEFAULT_FULL_US_RANGE = 1500;
 	
-	static const int DEFAULT_SPEED = 100;
+	static const int DEFAULT_SPEED = 200;
 	static const int DEFAULT_MAX_ANGEL_AGAINST_MIDDLE = 40;
 	static const int DEFAULT_MIN_ANGEL_AGAINST_MIDDLE = -40;
 
 private:
 	
 	int m_connectorNumber;
-	int m_fullUs;
-	int m_middleUs;
+	long m_fullUs;
+	long m_middleUs;
 	int m_maxAngelAgainstMiddle;
 	int m_minAngelAgainstMiddle;
 	
 	/* Speed in us/s for servo */
 	int m_speed;
 
+	/* Depends on the hardware setup, when parameter of getMoveCommand, it should forward*/
+	bool m_forwardDirection = true;
+
 	
 public:
-	ArmServo(int connectorNumber, int fullUs, int middleUs);
-	
+	ArmServo(int connectorNumber, long fullUs, long middleUs, int speed, bool forwardDirection);
+	void setMiddleUs(int middleUs);
 	/**
 	 * Get the command of moving the an offset degree against middle (90 degree)
 	 */
