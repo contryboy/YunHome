@@ -32,7 +32,7 @@ void ArmController::moveServo(ArmServo &servo, int degreeAgainstMiddle)
 }
 
 void ArmController::clipTennisBall() {
-	moveServo(servo6, 50);
+	moveServo(servo6, 55);
 }
 
 void ArmController::handUp() {
@@ -42,8 +42,19 @@ void ArmController::handUp() {
 	moveServo(servo4, 0);
 }
 
-void ArmController::preparePositionForFetch() {
+void ArmController::prepareGestureForFetch() {
 	moveServo(servo2, 66);
 	moveServo(servo3, 43);
 	moveServo(servo4, 60);
 }
+
+void ArmController::prepareGestureForRelease() {
+	moveServo(servo2, 30);
+	moveServo(servo3, 40);
+	moveServo(servo4, 20);
+}
+
+void ArmController::releaseTennisBall() {
+	moveServo(servo6, 0);
+}
+

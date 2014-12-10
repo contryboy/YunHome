@@ -16,8 +16,8 @@ class RobertEye {
 
 public:
 	const static int MIDDLE_X = 163;
-	//if x is with +/- MIDDLE_RANGE of middle, consider it still in middle
-	const static int MIDDLE_RANGE = 3;
+	//if x is with +/- MIDDLE_CHECK_ACCURACY of middle, consider it still in middle
+	const static int MIDDLE_CHECK_ACCURACY = 3;
 
 private:
 	Pixy pixy;
@@ -28,13 +28,14 @@ public:
 
 	void begin();
 	void printObjects();
-	Block getBiggestObject();
+	Block getBiggestObject(uint16_t signatureNumber);
 	int getObjectCount();
 	bool isValidObject(const Block &block);
 	/**
 	 * Get the x offset to middle, <0 means left, 0 means middle, >0 means right.
 	 */
 	int getXOffsetToMiddle(Block& block);
+	int getXOffsetToMiddle(Block& block, int accuracyInPixl);
 };
 
 #endif /* ROBERTEYE_H_ */

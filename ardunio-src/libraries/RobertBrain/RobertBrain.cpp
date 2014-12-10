@@ -7,8 +7,10 @@
 
 #include "RobertBrain.h"
 
-RobertBrain::RobertBrain(RobertEye &robertEye, ArmController &armController, TrackedVehicle &vehicle)
-	:m_robertEye(robertEye), m_armController(armController), m_vehicle(vehicle), m_currentMode(INIT)
+RobertBrain::RobertBrain(RobertEye &robertEye, ArmController &armController, TrackedVehicle &vehicle,
+		uint16_t targetObjectSignatureNumber, uint16_t containerObjectSignatureNumber)
+	:m_robertEye(robertEye), m_armController(armController), m_vehicle(vehicle), m_currentMode(INIT),
+	 m_targetObjectSignatureNumber(targetObjectSignatureNumber), m_containerObjectSignatureNumber(containerObjectSignatureNumber)
 {
 	// TODO Auto-generated constructor stub
 
@@ -19,69 +21,123 @@ void RobertBrain::think() {
 	Serial.println(m_currentMode);
 	switch(m_currentMode) {
 		case(INIT):
-			m_currentMode = DETECTING_OBJECT;
+			m_currentMode = DETECTING_TARGET_OBJECT;
 			break;
-		case(DETECTING_OBJECT):
-			detectObject();
+		case(DETECTING_TARGET_OBJECT):
+			if(detectObject(m_targetObjectSignatureNumber)) {
+				m_currentMode = TARGET_OBJECT_DETECTED;
+			}
 			break;
-		case(OBJECT_DETECTED):
+		case(TARGET_OBJECT_DETECTED):
 			m_currentMode = APPROCHING_OBJECT;
-			delay(200);
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
 			break;
 		case(APPROCHING_OBJECT):
-			approchObject();
+			if(approchObject(m_targetObjectSignatureNumber, TARGET_DISTANCE_MM_TO_OBJECT)) {
+				m_currentMode = OBJECT_APPROCHED;
+			}
 			break;
 		case(OBJECT_APPROCHED):
 			m_currentMode = ADJUSTING_POSITION_DISTANCE;
-			delay(200);
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
 			break;
 		case(ADJUSTING_POSITION_DISTANCE):
-			adjustPositionDistance();
+			if(adjustPositionDistance()) {
+				m_currentMode = POSITION_DISTANCE_ADJUSTED;
+			}
 			break;
 		case(POSITION_DISTANCE_ADJUSTED):
 			m_currentMode = ADJUSTING_POSITION_DEGREE;
-			delay(200);
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
 			break;
 		case(ADJUSTING_POSITION_DEGREE):
-			adjustPositionDegree();
+			if(adjustPositionDegree()) {
+				m_currentMode = POSITION_DEGREE_ADJUSTED;
+			}
 			break;
 		case(POSITION_DEGREE_ADJUSTED):
 			m_currentMode = PREPARE_FETCH_GESTURE;
-			delay(200);
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
 			break;
 		case(PREPARE_FETCH_GESTURE):
-			prepareFetchGesture();
+			if(prepareFetchGesture()) {
+				m_currentMode = FETCH_GESTURE_READY;
+			}
 			break;
-		case(FETCH_POSITION_GESTURE_READY):
+		case(FETCH_GESTURE_READY):
 			m_currentMode = CLIPPING_TENNIS_BALL;
-			delay(200);
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
 			break;
 		case(CLIPPING_TENNIS_BALL):
-			clipTennisBall();
+			if(clipTennisBall()) {
+				m_currentMode = TENNIS_BALL_CLIPPED;
+			}
 			break;
 		case(TENNIS_BALL_CLIPPED):
 			m_currentMode = HAND_UPING_WITH_BALL;
-			delay(200);
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
 			break;
 		case(HAND_UPING_WITH_BALL):
-			handUpWithBall();
+			if(handUpWithBall()) {
+				m_currentMode = HAND_UP_WITH_BALL_FINISHED;
+			}
 			break;
 		case(HAND_UP_WITH_BALL_FINISHED):
-			//to be continued.
+			m_currentMode = DETECTING_CONTAINER;
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
 			break;
-
+		case(DETECTING_CONTAINER):
+			if(detectObject(m_containerObjectSignatureNumber)) {
+				m_currentMode = CONTAINER_DETECTED;
+			}
+			break;
+		case(CONTAINER_DETECTED):
+			m_currentMode = APPROCHING_CONTAINER;
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			break;
+		case(APPROCHING_CONTAINER):
+			if(approchObject(m_containerObjectSignatureNumber, TARGET_DISTANCE_MM_TO_CONTAINER)) {
+				m_currentMode = CONTAINER_APPROCHED;
+			}
+			break;
+		case(CONTAINER_APPROCHED):
+			m_currentMode = PREPARE_RELEASE_GESTURE;
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			break;
+		case(PREPARE_RELEASE_GESTURE):
+			if(prepareReleaseGesture()) {
+				m_currentMode = RELEASE_GESTURE_READY;
+			}
+			break;
+		case(RELEASE_GESTURE_READY):
+			m_currentMode = RELEASING_TENNIS_BALL;
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			break;
+		case(RELEASING_TENNIS_BALL):
+			if(releaseTennisBall()) {
+				m_currentMode = TENNIS_BALL_RELEASED;
+			}
+			break;
+		case(TENNIS_BALL_RELEASED):
+			m_currentMode = HAND_UP_AND_BACK;
+			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			break;
+		case(HAND_UP_AND_BACK):
+			if(handUpAndBack()) {
+				m_currentMode = INIT;
+			}
+			break;
 	}
 }
 
+bool RobertBrain::detectObject(uint16_t objectSignature) {
 
-void RobertBrain::detectObject() {
-
-	m_vehicle.stop();
-	delay(25);
-
-	Block object = m_robertEye.getBiggestObject();
+	Block object = m_robertEye.getBiggestObject(objectSignature);
 
 	if (m_robertEye.isValidObject(object)) {
+		m_vehicle.stop();
+		delay(20);
+
 		int offsetXToMiddle = m_robertEye.getXOffsetToMiddle(object);
 		if (offsetXToMiddle < 0) {
 			m_currentCircleDirection = true;
@@ -91,37 +147,47 @@ void RobertBrain::detectObject() {
 			m_vehicle.circle(m_currentCircleDirection, calculateCircleSpeedByOffset(offsetXToMiddle));
 		} else {
 			m_vehicle.stop();
-			m_currentMode = OBJECT_DETECTED;
-			return;
+			return true;
 		}
 	} else {
 		//Serial.println(object.width);
 		//if no object found, circle to looking for.
 		m_vehicle.circle(m_currentCircleDirection, TrackedVehicle::MAX_SPEED_VALUE);
 	}
+
+	return false;
 }
 
 
-void RobertBrain::approchObject() {
+bool RobertBrain::approchObject(uint16_t objectSignature, int targetDistance) {
 
 	m_vehicle.stop();
-	delay(25);
+	delay(20);
 
-	Block object = m_robertEye.getBiggestObject();
+	Block object = m_robertEye.getBiggestObject(objectSignature);
 
 	if (m_robertEye.isValidObject(object)) {
 		int distance = DistanceMeasure::getDistanceInMm();
-		if(distance <= TARGET_DISTANCE_MM_TO_OBJECT) {
+		if(distance <= targetDistance) {
 			m_vehicle.stop();
-			m_currentMode = OBJECT_APPROCHED;
+			return true;
+
 		} else {
-			int offsetXToMiddle = m_robertEye.getXOffsetToMiddle(object);
+			int speed = TrackedVehicle::MAX_SPEED_VALUE;
+			int middleCheckAccuracy = APPROCH_FAR_MIDDLE_CHECK_ACCURACY;
+
+			if(distance < SLOW_DOWN_DISTANCE) {
+				speed = TrackedVehicle::MIN_SPEED_VALUE;
+				middleCheckAccuracy = APPROCH_CLOSE_MIDDLE_CHECK_ACCURACY;
+			}
+
+			int offsetXToMiddle = m_robertEye.getXOffsetToMiddle(object, middleCheckAccuracy);
 			if (offsetXToMiddle < 0) {
-				m_vehicle.move(0, calculateApprochSpeed(distance));
+				m_vehicle.move(0, speed);
 			} else if (offsetXToMiddle > 0) {
-				m_vehicle.move(calculateApprochSpeed(distance), 0);
+				m_vehicle.move(speed, 0);
 			} else {
-				m_vehicle.move(calculateApprochSpeed(distance), calculateApprochSpeed(distance));
+				m_vehicle.move(speed, speed);
 			}
 		}
 
@@ -130,13 +196,14 @@ void RobertBrain::approchObject() {
 		//Serial.println("Object missing");
 		m_vehicle.stop();
 	}
+	return false;
 }
 
 
-void RobertBrain::adjustPositionDegree() {
+bool RobertBrain::adjustPositionDegree() {
 	m_vehicle.stop();//make the vehicle stable for measure distance
 	delay(25);
-	Block object = m_robertEye.getBiggestObject();
+	Block object = m_robertEye.getBiggestObject(m_targetObjectSignatureNumber);
 
 	if (m_robertEye.isValidObject(object)) {
 		int offsetXToMiddle = m_robertEye.getXOffsetToMiddle(object);
@@ -145,19 +212,19 @@ void RobertBrain::adjustPositionDegree() {
 		} else if (offsetXToMiddle > 0) {
 			m_vehicle.circle(false, calculateCircleSpeedByOffset(offsetXToMiddle));
 		} else {
-			m_currentMode = POSITION_DEGREE_ADJUSTED;
-			return;
+			return true;
 		}
-
 	}
+
+	return false;
 }
 
-void RobertBrain::adjustPositionDistance() {
+bool RobertBrain::adjustPositionDistance() {
 
 	m_vehicle.stop();//make the volt stable for measure distance
 	delay(25);
 
-	Block object = m_robertEye.getBiggestObject();
+	Block object = m_robertEye.getBiggestObject(m_targetObjectSignatureNumber);
 
 	if (m_robertEye.isValidObject(object)) {
 		int distance = DistanceMeasure::getDistanceInMm();
@@ -166,27 +233,49 @@ void RobertBrain::adjustPositionDistance() {
 		} else if(distance > (TARGET_DISTANCE_MM_TO_OBJECT + POSITION_DISTANCE_MM_ACCURACY)){
 			m_vehicle.move(TrackedVehicle::MIN_SPEED_VALUE, TrackedVehicle::MIN_SPEED_VALUE);
 		} else {
-			m_currentMode = POSITION_DISTANCE_ADJUSTED;
+			return true;
 		}
 	}
+	return false;
 }
 
-void RobertBrain::prepareFetchGesture() {
-	m_armController.preparePositionForFetch();
+bool RobertBrain::prepareFetchGesture() {
+	m_armController.prepareGestureForFetch();
 	delay(4000);
-	m_currentMode = FETCH_POSITION_GESTURE_READY;
+	return true;
 }
 
-void RobertBrain::clipTennisBall() {
+bool RobertBrain::clipTennisBall() {
 	m_armController.clipTennisBall();
 	delay(3000);
-	m_currentMode = TENNIS_BALL_CLIPPED;
+	return true;
 }
 
-void RobertBrain::handUpWithBall() {
+bool RobertBrain::handUpWithBall() {
 	m_armController.handUp();
 	delay(4000);
-	m_currentMode = HAND_UP_WITH_BALL_FINISHED;
+	return true;
+}
+
+bool RobertBrain::prepareReleaseGesture() {
+	m_armController.prepareGestureForRelease();
+	delay(4000);
+	return true;
+}
+
+bool RobertBrain::releaseTennisBall() {
+	m_armController.releaseTennisBall();
+	delay(4000);
+	return true;
+}
+
+bool RobertBrain::handUpAndBack() {
+	m_armController.handUp();
+	delay(4000);
+	m_vehicle.move(0-TrackedVehicle::MAX_SPEED_VALUE, 0-TrackedVehicle::MAX_SPEED_VALUE);
+	delay(500);
+	m_vehicle.stop();
+	return true;
 }
 
 int RobertBrain::calculateApprochSpeed(int distance) {
@@ -196,7 +285,6 @@ int RobertBrain::calculateApprochSpeed(int distance) {
 	} else {
 		return TrackedVehicle::MIN_SPEED_VALUE;
 	}
-
 }
 
 int RobertBrain::calculateCircleSpeedByOffset(int offset) {

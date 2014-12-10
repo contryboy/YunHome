@@ -18,9 +18,11 @@ public:
 	void begin();
 	void moveServo(ArmServo &servo, int degreeAgainstMiddle);
 	void setAllServoInMiddle();
-	void preparePositionForFetch();
+	void prepareGestureForFetch();
 	void clipTennisBall();
 	void handUp();
+	void prepareGestureForRelease();
+	void releaseTennisBall();
 };
 
 #endif /* defined(____ArmController__) */

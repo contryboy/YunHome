@@ -39,13 +39,16 @@ int RobertEye::getObjectCount() {
 	return pixy.getBlocks();
 }
 
-Block RobertEye::getBiggestObject() {
-	int blocks = pixy.getBlocks();
-	if(blocks == 0) {
-		return nullBlock;
-	} else {
-		return pixy.blocks[0];//the first one is the biggest one.
+Block RobertEye::getBiggestObject(uint16_t signatureNumber) {
+	int blocksCount = pixy.getBlocks();
+
+	for(int i=0; i<blocksCount; ++i) {
+		if(pixy.blocks[i].signature == signatureNumber) {
+			return pixy.blocks[i];
+		}
 	}
+
+	return nullBlock;
 }
 
 bool RobertEye::isValidObject(const Block &block) {
@@ -53,6 +56,11 @@ bool RobertEye::isValidObject(const Block &block) {
 }
 
 int RobertEye::getXOffsetToMiddle(Block& block) {
+	return getXOffsetToMiddle(block, MIDDLE_CHECK_ACCURACY);
+}
+
+
+int RobertEye::getXOffsetToMiddle(Block& block, int accuracyInPixl) {
 	int offset = block.x - MIDDLE_X;
-	return abs(offset) <= MIDDLE_RANGE ? 0 : offset;
+	return abs(offset) <= accuracyInPixl ? 0 : offset;
 }
