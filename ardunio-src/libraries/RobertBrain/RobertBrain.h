@@ -16,24 +16,25 @@
 #include "DistanceMeasure.h"
 
 class RobertBrain {
-public:
-	enum ActionMode {INIT,
-		DETECTING_TARGET_OBJECT, TARGET_OBJECT_DETECTED,
-		APPROCHING_OBJECT, OBJECT_APPROCHED,
-		ADJUSTING_POSITION_DEGREE, POSITION_DEGREE_ADJUSTED,
-		ADJUSTING_POSITION_DISTANCE, POSITION_DISTANCE_ADJUSTED,
-		PREPARE_FETCH_GESTURE, FETCH_GESTURE_READY,
-		CLIPPING_TENNIS_BALL, TENNIS_BALL_CLIPPED,
-		HAND_UPING_WITH_BALL, HAND_UP_WITH_BALL_FINISHED,
-		DETECTING_CONTAINER, CONTAINER_DETECTED,
-		APPROCHING_CONTAINER, CONTAINER_APPROCHED,
-		PREPARE_RELEASE_GESTURE, RELEASE_GESTURE_READY,
-		RELEASING_TENNIS_BALL, TENNIS_BALL_RELEASED,
-		HAND_UP_AND_BACK
+private:
+	enum ActionMode {
+		UNKNOWN,
+		INIT,
+		DETECTING_TARGET_OBJECT,
+		APPROCHING_OBJECT,
+		ADJUSTING_POSITION_DEGREE,
+		ADJUSTING_POSITION_DISTANCE,
+		FETCHING_TENNIS_BALL,
+		DETECTING_CONTAINER,
+		APPROCHING_CONTAINER,
+		RELEASING_TENNIS_BALL,
+		STEPING_BACK
 	};
 
+	enum ActionResult {
+		OK, REPEAT
+	};
 
-private:
 	const static int TIME_PAUSE_FOR_MODE_CHANGE = 500;
 	const static int TARGET_DISTANCE_MM_TO_OBJECT = 130;
 	const static int TARGET_DISTANCE_MM_TO_CONTAINER = 100;
@@ -55,24 +56,26 @@ private:
 
 	int calculateCircleSpeedByOffset(int offset);
 	int calculateApprochSpeed(int distance);
+
 public:
 	RobertBrain(RobertEye &robertEye, ArmController &armController, TrackedVehicle &vehicle,
 			uint16_t targetObjectSignatureNumber, uint16_t containerObjectSignatureNumber);
-
-public:
 	void think();
 
 private:
-	bool detectObject(uint16_t objectSignature);
-	bool approchObject(uint16_t objectSignature, int targetDistance);
-	bool adjustPositionDegree();
-	bool adjustPositionDistance();
-	bool prepareFetchGesture();
-	bool clipTennisBall();
-	bool handUpWithBall();
-	bool prepareReleaseGesture();
-	bool releaseTennisBall();
-	bool handUpAndBack();
+
+	ActionResult runActionOfMode(ActionMode actionMode);
+	ActionMode transiteMode(ActionMode oldMode, ActionResult oldModeActionResult);
+	ActionResult init();
+	ActionResult detectObject(uint16_t objectSignature);
+	ActionResult approchObject(uint16_t objectSignature, int targetDistance);
+	ActionResult adjustPositionDegree();
+	ActionResult adjustPositionDistance();
+	ActionResult fetchTennisBall();
+	ActionResult releaseTennisBall();
+	ActionResult stepBack();
+
+
 };
 
 #endif /* ROBERTBRAIN_H_ */

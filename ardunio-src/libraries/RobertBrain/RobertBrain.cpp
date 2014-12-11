@@ -12,125 +12,101 @@ RobertBrain::RobertBrain(RobertEye &robertEye, ArmController &armController, Tra
 	:m_robertEye(robertEye), m_armController(armController), m_vehicle(vehicle), m_currentMode(INIT),
 	 m_targetObjectSignatureNumber(targetObjectSignatureNumber), m_containerObjectSignatureNumber(containerObjectSignatureNumber)
 {
-	// TODO Auto-generated constructor stub
 
 }
 
 void RobertBrain::think() {
-	Serial.print("current mode: ");
-	Serial.println(m_currentMode);
+
+	//Serial.print("current mode: ");
+	//Serial.println(m_currentMode);
+
+	ActionResult result = runActionOfMode(m_currentMode);
+	m_currentMode = transiteMode(m_currentMode, result);
+}
+
+RobertBrain::ActionMode RobertBrain::transiteMode(ActionMode oldMode, ActionResult oldModeActionResult) {
+
+	if(REPEAT == oldModeActionResult) {
+		return oldMode;
+	} else {
+		switch(oldMode) {
+			case(INIT):
+				if(OK == oldModeActionResult) return DETECTING_TARGET_OBJECT;
+				break;
+			case(DETECTING_TARGET_OBJECT):
+				if(OK == oldModeActionResult) return APPROCHING_OBJECT;
+				break;
+			case(APPROCHING_OBJECT):
+				if(OK == oldModeActionResult) return ADJUSTING_POSITION_DISTANCE;
+				break;
+			case(ADJUSTING_POSITION_DISTANCE):
+				if(OK == oldModeActionResult) return ADJUSTING_POSITION_DEGREE;
+				break;
+			case(ADJUSTING_POSITION_DEGREE):
+				if(OK == oldModeActionResult) return FETCHING_TENNIS_BALL;
+				break;
+			case(FETCHING_TENNIS_BALL):
+				if(OK == oldModeActionResult) return DETECTING_CONTAINER;
+				break;
+			case(DETECTING_CONTAINER):
+				if(OK == oldModeActionResult) return APPROCHING_CONTAINER;
+				break;
+			case(APPROCHING_CONTAINER):
+				if(OK == oldModeActionResult) return RELEASING_TENNIS_BALL;
+				break;
+			case(RELEASING_TENNIS_BALL):
+				if(OK == oldModeActionResult) return STEPING_BACK;
+				break;
+			case(STEPING_BACK):
+				if(OK == oldModeActionResult) return INIT;
+				break;
+			}
+	}
+
+	return UNKNOWN;
+}
+
+RobertBrain::ActionResult RobertBrain::runActionOfMode(ActionMode actionMode) {
 	switch(m_currentMode) {
 		case(INIT):
-			m_currentMode = DETECTING_TARGET_OBJECT;
+			return init();
 			break;
 		case(DETECTING_TARGET_OBJECT):
-			if(detectObject(m_targetObjectSignatureNumber)) {
-				m_currentMode = TARGET_OBJECT_DETECTED;
-			}
-			break;
-		case(TARGET_OBJECT_DETECTED):
-			m_currentMode = APPROCHING_OBJECT;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			return detectObject(m_targetObjectSignatureNumber);
 			break;
 		case(APPROCHING_OBJECT):
-			if(approchObject(m_targetObjectSignatureNumber, TARGET_DISTANCE_MM_TO_OBJECT)) {
-				m_currentMode = OBJECT_APPROCHED;
-			}
-			break;
-		case(OBJECT_APPROCHED):
-			m_currentMode = ADJUSTING_POSITION_DISTANCE;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			return approchObject(m_targetObjectSignatureNumber, TARGET_DISTANCE_MM_TO_OBJECT);
 			break;
 		case(ADJUSTING_POSITION_DISTANCE):
-			if(adjustPositionDistance()) {
-				m_currentMode = POSITION_DISTANCE_ADJUSTED;
-			}
-			break;
-		case(POSITION_DISTANCE_ADJUSTED):
-			m_currentMode = ADJUSTING_POSITION_DEGREE;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			return adjustPositionDistance();
 			break;
 		case(ADJUSTING_POSITION_DEGREE):
-			if(adjustPositionDegree()) {
-				m_currentMode = POSITION_DEGREE_ADJUSTED;
-			}
+			return adjustPositionDegree();
 			break;
-		case(POSITION_DEGREE_ADJUSTED):
-			m_currentMode = PREPARE_FETCH_GESTURE;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
-			break;
-		case(PREPARE_FETCH_GESTURE):
-			if(prepareFetchGesture()) {
-				m_currentMode = FETCH_GESTURE_READY;
-			}
-			break;
-		case(FETCH_GESTURE_READY):
-			m_currentMode = CLIPPING_TENNIS_BALL;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
-			break;
-		case(CLIPPING_TENNIS_BALL):
-			if(clipTennisBall()) {
-				m_currentMode = TENNIS_BALL_CLIPPED;
-			}
-			break;
-		case(TENNIS_BALL_CLIPPED):
-			m_currentMode = HAND_UPING_WITH_BALL;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
-			break;
-		case(HAND_UPING_WITH_BALL):
-			if(handUpWithBall()) {
-				m_currentMode = HAND_UP_WITH_BALL_FINISHED;
-			}
-			break;
-		case(HAND_UP_WITH_BALL_FINISHED):
-			m_currentMode = DETECTING_CONTAINER;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+		case(FETCHING_TENNIS_BALL):
+			return fetchTennisBall();
 			break;
 		case(DETECTING_CONTAINER):
-			if(detectObject(m_containerObjectSignatureNumber)) {
-				m_currentMode = CONTAINER_DETECTED;
-			}
-			break;
-		case(CONTAINER_DETECTED):
-			m_currentMode = APPROCHING_CONTAINER;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			return detectObject(m_containerObjectSignatureNumber);
 			break;
 		case(APPROCHING_CONTAINER):
-			if(approchObject(m_containerObjectSignatureNumber, TARGET_DISTANCE_MM_TO_CONTAINER)) {
-				m_currentMode = CONTAINER_APPROCHED;
-			}
-			break;
-		case(CONTAINER_APPROCHED):
-			m_currentMode = PREPARE_RELEASE_GESTURE;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
-			break;
-		case(PREPARE_RELEASE_GESTURE):
-			if(prepareReleaseGesture()) {
-				m_currentMode = RELEASE_GESTURE_READY;
-			}
-			break;
-		case(RELEASE_GESTURE_READY):
-			m_currentMode = RELEASING_TENNIS_BALL;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
+			return approchObject(m_containerObjectSignatureNumber, TARGET_DISTANCE_MM_TO_CONTAINER);
 			break;
 		case(RELEASING_TENNIS_BALL):
-			if(releaseTennisBall()) {
-				m_currentMode = TENNIS_BALL_RELEASED;
-			}
+			return releaseTennisBall();
 			break;
-		case(TENNIS_BALL_RELEASED):
-			m_currentMode = HAND_UP_AND_BACK;
-			delay(TIME_PAUSE_FOR_MODE_CHANGE);
-			break;
-		case(HAND_UP_AND_BACK):
-			if(handUpAndBack()) {
-				m_currentMode = INIT;
-			}
+		case(STEPING_BACK):
+			return stepBack();
 			break;
 	}
 }
 
-bool RobertBrain::detectObject(uint16_t objectSignature) {
+RobertBrain::ActionResult RobertBrain::init() {
+	//Init action can be done here if it is required.
+	return OK;
+}
+
+RobertBrain::ActionResult RobertBrain::detectObject(uint16_t objectSignature) {
 
 	Block object = m_robertEye.getBiggestObject(objectSignature);
 
@@ -147,7 +123,7 @@ bool RobertBrain::detectObject(uint16_t objectSignature) {
 			m_vehicle.circle(m_currentCircleDirection, calculateCircleSpeedByOffset(offsetXToMiddle));
 		} else {
 			m_vehicle.stop();
-			return true;
+			return OK;
 		}
 	} else {
 		//Serial.println(object.width);
@@ -155,11 +131,11 @@ bool RobertBrain::detectObject(uint16_t objectSignature) {
 		m_vehicle.circle(m_currentCircleDirection, TrackedVehicle::MAX_SPEED_VALUE);
 	}
 
-	return false;
+	return REPEAT;
 }
 
 
-bool RobertBrain::approchObject(uint16_t objectSignature, int targetDistance) {
+RobertBrain::ActionResult RobertBrain::approchObject(uint16_t objectSignature, int targetDistance) {
 
 	m_vehicle.stop();
 	delay(20);
@@ -170,7 +146,7 @@ bool RobertBrain::approchObject(uint16_t objectSignature, int targetDistance) {
 		int distance = DistanceMeasure::getDistanceInMm();
 		if(distance <= targetDistance) {
 			m_vehicle.stop();
-			return true;
+			return OK;
 
 		} else {
 			int speed = TrackedVehicle::MAX_SPEED_VALUE;
@@ -196,11 +172,11 @@ bool RobertBrain::approchObject(uint16_t objectSignature, int targetDistance) {
 		//Serial.println("Object missing");
 		m_vehicle.stop();
 	}
-	return false;
+	return REPEAT;
 }
 
 
-bool RobertBrain::adjustPositionDegree() {
+RobertBrain::ActionResult RobertBrain::adjustPositionDegree() {
 	m_vehicle.stop();//make the vehicle stable for measure distance
 	delay(25);
 	Block object = m_robertEye.getBiggestObject(m_targetObjectSignatureNumber);
@@ -212,14 +188,14 @@ bool RobertBrain::adjustPositionDegree() {
 		} else if (offsetXToMiddle > 0) {
 			m_vehicle.circle(false, calculateCircleSpeedByOffset(offsetXToMiddle));
 		} else {
-			return true;
+			return OK;
 		}
 	}
 
-	return false;
+	return REPEAT;
 }
 
-bool RobertBrain::adjustPositionDistance() {
+RobertBrain::ActionResult RobertBrain::adjustPositionDistance() {
 
 	m_vehicle.stop();//make the volt stable for measure distance
 	delay(25);
@@ -233,49 +209,37 @@ bool RobertBrain::adjustPositionDistance() {
 		} else if(distance > (TARGET_DISTANCE_MM_TO_OBJECT + POSITION_DISTANCE_MM_ACCURACY)){
 			m_vehicle.move(TrackedVehicle::MIN_SPEED_VALUE, TrackedVehicle::MIN_SPEED_VALUE);
 		} else {
-			return true;
+			return OK;
 		}
 	}
-	return false;
+	return REPEAT;
 }
 
-bool RobertBrain::prepareFetchGesture() {
+RobertBrain::ActionResult RobertBrain::fetchTennisBall() {
 	m_armController.prepareGestureForFetch();
-	delay(4000);
-	return true;
-}
-
-bool RobertBrain::clipTennisBall() {
-	m_armController.clipTennisBall();
 	delay(3000);
-	return true;
-}
-
-bool RobertBrain::handUpWithBall() {
+	m_armController.clipTennisBall();
+	delay(2000);
 	m_armController.handUp();
-	delay(4000);
-	return true;
+	delay(3000);
+	return OK;
 }
 
-bool RobertBrain::prepareReleaseGesture() {
+RobertBrain::ActionResult RobertBrain::releaseTennisBall() {
 	m_armController.prepareGestureForRelease();
-	delay(4000);
-	return true;
-}
-
-bool RobertBrain::releaseTennisBall() {
+	delay(3000);
 	m_armController.releaseTennisBall();
-	delay(4000);
-	return true;
+	delay(2000);
+	m_armController.handUp();
+	delay(3000);
+	return OK;
 }
 
-bool RobertBrain::handUpAndBack() {
-	m_armController.handUp();
-	delay(4000);
+RobertBrain::ActionResult RobertBrain::stepBack() {
 	m_vehicle.move(0-TrackedVehicle::MAX_SPEED_VALUE, 0-TrackedVehicle::MAX_SPEED_VALUE);
 	delay(500);
 	m_vehicle.stop();
-	return true;
+	return OK;
 }
 
 int RobertBrain::calculateApprochSpeed(int distance) {
